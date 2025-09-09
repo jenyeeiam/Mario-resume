@@ -1,0 +1,58 @@
+JEN YEE
+Burnaby, BC • 604-340-7427 • jenyee1022@gmail.com
+
+SUMMARY
+Olympian and Professional Athlete turned Software Engineer turned Salesperson who uses a goal driven mindset to get the job done. I have 8 years of experience as a software engineer, and countless years of coaching and working with people. I value strong communication, both synchronous and asynchronous. My experience as a Toastmaster and Dale Carnegie alum are great assets for working within distributed teams as well as helped me in my sales career.
+
+WORK EXPERIENCE
+
+Sales Representative | Wodka Vines (Jan 2025 - Present)
+• Commission-based sales agent covering the entire Lower Mainland, selling wine and spirits to private liquor stores and restaurants
+• Built and managed my own sales pipeline by cold calling, door knocking, and building relationships
+• Maintained relationships and followed up with key account holders
+
+Franchise Owner | Five Star Holiday Decor (May 2024 - Jan 2025)
+• Manage all aspects of a new small business, including sales, marketing, operations, and installing Christmas lights
+• Handled customer engagement and client relations, managing the full sales cycle from initial touch point to close
+• Used HubSpot to manage leads and drive the sales pipeline, all while climbing ladders and installing lights
+
+Software Engineer | Detroit Tigers (Mar 2022 - Aug 2024)
+• Worked in a small team of 3-5 to handle all the feature requests of the entire department
+• Handled disparate data sources and contributed to microservice apis built in C#/.NET
+• Contributed to a monolith code base built in Java Spring 8 and AngularJS/Angular
+• Deployed services to on premise servers and worked with on-premise Microsoft SQL databases
+• Owned the entire lifecycle of features, from scoping projects and writing tickets, to building features, to deployment
+• Worked cross functionally with data engineering, scouting, coaching and data analysis
+
+Software Engineer | Sendwave (May 2019 - Feb 2022)
+• Worked on the Risk Team, contributing to server side code built in Flask and worked across teams to create heuristics to mitigate fraud
+• Conducted data analysis with complex SQL queries with the investigation team to understand user behavior
+• Built defenses server side and created small interfaces in Javascript (JQuery) for support reps to easily and quickly interpret user's past behavior
+• Built the foundation for a reusable fraud defense system which was later used by the data analytics team to monitor and analyze fraud
+• On the Payments Team, built out the infrastructure to connect with partner networks and banks through their apis to facilitate mobile remittances
+• Became an expert in financial reporting and became an SQL detective tracking down transactions which were mislabeled or misassigned
+
+Full Stack Developer | UrbanLogiq (Nov 2016 - May 2019)
+• First full time Web Developer hire in an early stage startup
+• Worked on front and back end code, predominantly in Ruby on Rails and React/Redux
+• Worked with municipal government groups to procure, clean, and interpret traffic data
+• Created geospatial visualizations and analyses with PostGIS, Mapbox GL JS, QGIS, and D3.js
+• Built dashboards to overlay traffic data with economic and population data to aid public servants in making infrastructure decisions
+• Developed skills with cloud technology tools such as Google's BigQuery, Amazon Athena, AWS Elastic Beanstalk, RDS, EC2, S3, Athena and Microsoft Azure
+• Developed ETL processes, by handling large datasets from clients or APIs
+• Handled customer feedback to iterate on products and build features custom to clients' needs
+
+Athlete | Canadian National Team (Jun 2007 - Aug 2016)
+Bat Development Engineer | Combat Sports (Nov 2013 - Feb 2016)
+Professional Athlete | Toda Medical Group (Feb 2013 - Dec 2014)
+Assistant Coach | University of Massachusetts Lowell (Jan 2011 - Feb 2013)
+
+EDUCATION
+
+Web Development Bootcamp Certificate - Lighthouse Labs (Sept 2016 - November 2016)
+Master of Science in Mechanical Engineering - University of Massachusetts Lowell (Jan 2011 - Jan 2013)
+Bachelor of Science in Materials Science and Engineering - Georgia Institute of Technology (Jan 2006 - Jan 2010)
+
+ADDITIONAL INFORMATION
+• Certifications: Dale Carnegie Course, Serving It Right
+• Volunteering/Activities: Speaker Coach and Toastmaster

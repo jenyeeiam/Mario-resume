@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mario Resume</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        .main-game {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        canvas {
+            border: 4px solid #fff;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+        
+        .ui-panel {
+            width: 350px;
+            background: #000;
+            border-left: 4px solid #fff;
+            color: #fff;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            overflow-y: auto;
+        }
+        
+        .ui-section {
+            background: #222;
+            border: 2px solid #fff;
+            margin-bottom: 20px;
+            padding: 15px;
+        }
+        
+        .ui-section h3 {
+            margin: 0 0 10px 0;
+            color: #FCFC00;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        
+        .stat-item {
+            margin: 8px 0;
+            font-size: 12px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #333;
+            border: 2px solid #fff;
+            margin: 10px 0;
+            position: relative;
+            overflow: hidden; /* Prevent overflow */
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00FF00, #FFFF00);
+            transition: width 0.3s ease;
+            max-width: 100%; /* Ensure it never exceeds container */
+        }
+        
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .skill-badge {
+            background: #333;
+            border: 1px solid #666;
+            padding: 4px;
+            text-align: center;
+            font-size: 10px;
+            border-radius: 2px;
+        }
+        
+        .skill-badge.collected {
+            background: #00AA00;
+            border-color: #00FF00;
+            color: #fff;
+        }
+        
+        .skill-badge.collected.duplicate {
+            background: #006600; /* Darker green for duplicates */
+            border-color: #00AA00;
+            color: #fff;
+        }
+        
+        .controls {
+            color: #ccc;
+            font-size: 11px;
+            margin-top: 10px;
+        }
+        
+        .contact-info {
+            font-size: 11px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="main-game">
+            <canvas id="marioCanvas" width="800" height="400"></canvas>
+        </div>
+        <div class="ui-panel">
+            <div class="ui-section">
+                <h3>👤 Contact Info</h3>
+                <div class="contact-info">
+                    <div>JEN YEE</div>
+                    <div>Burnaby, BC</div>
+                    <div>604-340-7427</div>
+                    <div>jenyee1022@gmail.com</div>
+                </div>
+            </div>
+            
+            <div class="ui-section">
+                <h3>📊 Career Stats</h3>
+                <div class="stat-item">Score: <span id="game-score">0</span></div>
+                <div class="stat-item">Skills: <span id="skills-collected">0</span>/<span id="total-skills">0</span></div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                </div>
+                <div style="font-size: 10px; text-align: center; margin-top: 5px;">Career Progress</div>
+            </div>
+            
+            <div class="ui-section">
+                <h3>🏆 Skills Unlocked</h3>
+                <div class="skills-grid" id="skills-grid">
+                    <!-- Skills will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="ui-section">
+                <h3>🎮 Controls</h3>
+                <div class="controls">
+                    <div>← → Arrow Keys: Move</div>
+                    <div>SPACEBAR: Jump</div>
+                    <div>Collect power-ups to unlock skills!</div>
+                    <div>Visit platforms for job details!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <audio id="background-music" loop autoplay>
+        <source src="mario.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <script>
+        const canvas = document.getElementById('marioCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Disable anti-aliasing for pixelated look
+        ctx.imageSmoothingEnabled = false;
+        ctx.webkitImageSmoothingEnabled = false;
+        ctx.mozImageSmoothingEnabled = false;
+        ctx.msImageSmoothingEnabled = false;
+        
+        // NES Color Palette
+        const COLORS = {
+            SKY_BLUE: '#5C94FC',
+            CLOUD_WHITE: '#FCFCFC',
+            MARIO_RED: '#FC1C14',
+            MARIO_BLUE: '#0000FC',
+            MARIO_BROWN: '#BC8844',
+            MARIO_SKIN: '#FCBC3C',
+            PLATFORM_BROWN: '#8C4400',
+            COIN_YELLOW: '#FCFC00',
+            TEXT_WHITE: '#FCFCFC',
+            GROUND_GREEN: '#00A800'
+        };
+
+        // Game state
+        const game = {
+            player: {
+                x: 100,
+                y: 300,
+                width: 32,
+                height: 32,
+                vx: 0,
+                vy: 0,
+                jumping: false,
+                facing: 1, // 1 for right, -1 for left
+                animFrame: 0,
+                animTimer: 0
+            },
+            camera: {
+                x: 0,
+                y: 0
+            },
+            coins: [],
+            platforms: [],
+            clouds: [],
+            particles: [],
+            score: 0,
+            keys: {},
+            ui: {
+                experienceLevel: 0, // Will be calculated dynamically
+                totalSkills: 0, // Total count of all skills (including duplicates)
+                collectedSkills: 0,
+                uniqueSkills: new Set(),
+                skillCounts: new Map() // Track how many times each skill appears
+            }
+        };
+
+        // Initialize platforms (job experiences) - arranged chronologically (oldest to newest, left to right)
+        const jobExperiences = [
+            { 
+                company: "Canadian National Team", 
+                title: "Professional Athlet and Olympian", 
+                years: "Jun 2007 - Aug 2016",
+                skills: ["Leadership", "Coaching", "Public Speaking"],
+                x: 200, y: 320, width: 200 
+            },
+            { 
+                company: "UrbanLogiq", 
+                title: "Full Stack Developer", 
+                years: "Nov 2016 - May 2019",
+                skills: ["Ruby on Rails", "React/Redux", "PostGIS", "Customer Support"],
+                x: 500, y: 280, width: 220 
+            },
+            { 
+                company: "Sendwave", 
+                title: "Software Engineer", 
+                years: "May 2019 - Feb 2022",
+                skills: ["Python/Flask", "SQL", "OOP"],
+                x: 800, y: 240, width: 200 
+            },
+            { 
+                company: "Detroit Tigers", 
+                title: "Software Engineer", 
+                years: "Mar 2022 - Aug 2024",
+                skills: ["C#/.NET", "Java", "Angular/Typescript", "SQL Server"],
+                x: 1100, y: 200, width: 220 
+            },
+            { 
+                company: "Five Star Holiday Decor", 
+                title: "Franchise Owner", 
+                years: "May 2024 - Jan 2025",
+                skills: ["HubSpot", "Sales", "Operations", "Pipeline Management"],
+                x: 1400, y: 160, width: 240 
+            },
+            { 
+                company: "Wodka Vines", 
+                title: "Sales Representative", 
+                years: "Jan 2025 - Present",
+                skills: ["Sales", "HubSpot", "Pipeline Management", "Customer Support", "Negotiation", "Lead Generation"],
+                x: 1700, y: 120, width: 220 
+            }
+        ];
+
+        jobExperiences.forEach((job, index) => {
+            game.platforms.push({
+                x: job.x,
+                y: job.y,
+                width: job.width,
+                height: 24,
+                company: job.company,
+                title: job.title,
+                years: job.years,
+                skills: job.skills,
+                visited: false
+            });
+        });
+
+        // Calculate dynamic career stats
+        function calculateCareerStats() {
+            // Calculate years of experience (earliest start year to current year)
+            const startYears = game.platforms.map(platform => {
+                const yearMatch = platform.years.match(/(\d{4})/);
+                return yearMatch ? parseInt(yearMatch[1]) : 2025;
+            });
+            const earliestYear = Math.min(...startYears);
+            game.ui.experienceLevel = 2025 - earliestYear;
+            
+            // Count all skills (including duplicates) and unique skills
+            game.ui.totalSkills = 0;
+            game.ui.uniqueSkills.clear();
+            game.ui.skillCounts.clear();
+            
+            game.platforms.forEach(platform => {
+                platform.skills.forEach(skill => {
+                    game.ui.totalSkills++;
+                    game.ui.uniqueSkills.add(skill);
+                    
+                    // Track skill frequency
+                    const currentCount = game.ui.skillCounts.get(skill) || 0;
+                    game.ui.skillCounts.set(skill, currentCount + 1);
+                });
+            });
+            
+        }
+        
+        // Initialize collectible items (skills) - different types for variety
+        game.collectibles = [];
+        game.platforms.forEach((platform, platformIndex) => {
+            platform.skills.forEach((skill, skillIndex) => {
+                const itemTypes = ['coin', 'mushroom', 'star', 'flower'];
+                const itemType = itemTypes[skillIndex % itemTypes.length];
+                
+                game.collectibles.push({
+                    x: platform.x + 30 + (skillIndex * 35),
+                    y: platform.y - 35,
+                    width: 16,
+                    height: 16,
+                    type: itemType,
+                    skill: skill,
+                    collected: false,
+                    bounce: Math.random() * Math.PI * 2,
+                    platformIndex: platformIndex,
+                    skillIndex: skillIndex
+                });
+            });
+        });
+        
+        // Calculate initial stats
+        calculateCareerStats();
+
+        // Initialize clouds
+        for (let i = 0; i < 8; i++) {
+            game.clouds.push({
+                x: Math.random() * 1200,
+                y: Math.random() * 100 + 50,
+                size: Math.random() * 2 + 1
+            });
+        }
+
+        function drawPixelRect(x, y, width, height, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(Math.floor(x), Math.floor(y), width, height);
+        }
+
+        function drawMario() {
+            const p = game.player;
+            const scale = 2;
+            const baseX = Math.floor(p.x);
+            const baseY = Math.floor(p.y);
+
+            // Mario sprite (simplified pixel art)
+            // Hat
+            drawPixelRect(baseX + 2*scale, baseY, 6*scale, 2*scale, COLORS.MARIO_RED);
+            // Face
+            drawPixelRect(baseX + scale, baseY + 2*scale, 2*scale, 2*scale, COLORS.MARIO_SKIN);
+            drawPixelRect(baseX + 5*scale, baseY + 2*scale, 3*scale, 2*scale, COLORS.MARIO_SKIN);
+            // Mustache
+            drawPixelRect(baseX + 3*scale, baseY + 3*scale, 2*scale, scale, COLORS.MARIO_BROWN);
+            // Shirt
+            drawPixelRect(baseX + 2*scale, baseY + 4*scale, 4*scale, 4*scale, COLORS.MARIO_RED);
+            // Overalls
+            drawPixelRect(baseX + scale, baseY + 6*scale, 2*scale, 4*scale, COLORS.MARIO_BLUE);
+            drawPixelRect(baseX + 5*scale, baseY + 6*scale, 2*scale, 4*scale, COLORS.MARIO_BLUE);
+            // Arms
+            drawPixelRect(baseX, baseY + 5*scale, scale, 3*scale, COLORS.MARIO_SKIN);
+            drawPixelRect(baseX + 7*scale, baseY + 5*scale, scale, 3*scale, COLORS.MARIO_SKIN);
+            // Legs
+            drawPixelRect(baseX + 2*scale, baseY + 10*scale, 2*scale, 4*scale, COLORS.MARIO_BLUE);
+            drawPixelRect(baseX + 4*scale, baseY + 10*scale, 2*scale, 4*scale, COLORS.MARIO_BLUE);
+            // Shoes
+            drawPixelRect(baseX + scale, baseY + 14*scale, 3*scale, 2*scale, COLORS.MARIO_BROWN);
+            drawPixelRect(baseX + 4*scale, baseY + 14*scale, 3*scale, 2*scale, COLORS.MARIO_BROWN);
+        }
+
+        function drawCollectible(item) {
+            if (item.collected) return;
+            
+            const x = Math.floor(item.x);
+            const y = Math.floor(item.y + Math.sin(item.bounce) * 2);
+            const scale = 2;
+            
+            if (item.type === 'coin') {
+                // Coin sprite
+                drawPixelRect(x + scale, y, 4*scale, scale, COLORS.COIN_YELLOW);
+                drawPixelRect(x, y + scale, 6*scale, 4*scale, COLORS.COIN_YELLOW);
+                drawPixelRect(x + scale, y + 5*scale, 4*scale, scale, COLORS.COIN_YELLOW);
+                drawPixelRect(x + 2*scale, y + 2*scale, 2*scale, 2*scale, '#FCE000');
+            } else if (item.type === 'mushroom') {
+                // Mushroom sprite
+                drawPixelRect(x + scale, y, 4*scale, 3*scale, COLORS.MARIO_RED);
+                drawPixelRect(x + 2*scale, y + scale, 2*scale, scale, COLORS.CLOUD_WHITE);
+                drawPixelRect(x + scale, y + 3*scale, 4*scale, 3*scale, '#D2B48C');
+            } else if (item.type === 'star') {
+                // Star sprite
+                drawPixelRect(x + 2*scale, y, 2*scale, scale, COLORS.COIN_YELLOW);
+                drawPixelRect(x + scale, y + scale, 4*scale, scale, COLORS.COIN_YELLOW);
+                drawPixelRect(x + 2*scale, y + 2*scale, 2*scale, scale, COLORS.COIN_YELLOW);
+                drawPixelRect(x, y + 3*scale, 6*scale, scale, COLORS.COIN_YELLOW);
+                drawPixelRect(x + scale, y + 4*scale, 4*scale, scale, COLORS.COIN_YELLOW);
+                drawPixelRect(x + 2*scale, y + 5*scale, 2*scale, scale, COLORS.COIN_YELLOW);
+            } else if (item.type === 'flower') {
+                // Fire flower sprite
+                drawPixelRect(x + scale, y + scale, 4*scale, 2*scale, COLORS.MARIO_RED);
+                drawPixelRect(x + 2*scale, y, 2*scale, scale, COLORS.COIN_YELLOW);
+                drawPixelRect(x + scale, y + 3*scale, 4*scale, 3*scale, COLORS.GROUND_GREEN);
+            }
+            
+            item.bounce += 0.08;
+        }
+
+        function drawPlatform(platform) {
+            const x = Math.floor(platform.x);
+            const y = Math.floor(platform.y);
+            
+            // Platform base - darker brown
+            drawPixelRect(x, y, platform.width, platform.height, COLORS.PLATFORM_BROWN);
+            
+            // Brick texture pattern
+            const brickWidth = 16;
+            const brickHeight = 8;
+            
+            for (let bx = 0; bx < platform.width; bx += brickWidth) {
+                for (let by = 0; by < platform.height; by += brickHeight) {
+                    const actualWidth = Math.min(brickWidth, platform.width - bx);
+                    const actualHeight = Math.min(brickHeight, platform.height - by);
+                    
+                    // Brick base
+                    drawPixelRect(x + bx, y + by, actualWidth, actualHeight, '#A85000');
+                    
+                    // Brick highlights
+                    drawPixelRect(x + bx, y + by, actualWidth, 1, '#D2691E');
+                    drawPixelRect(x + bx, y + by, 1, actualHeight, '#D2691E');
+                    
+                    // Brick shadows
+                    drawPixelRect(x + bx, y + by + actualHeight - 1, actualWidth, 1, '#654321');
+                    drawPixelRect(x + bx + actualWidth - 1, y + by, 1, actualHeight, '#654321');
+                }
+            }
+            
+            // Platform outline
+            drawPixelRect(x, y, platform.width, 1, '#654321');
+            drawPixelRect(x, y, 1, platform.height, '#654321');
+            drawPixelRect(x, y + platform.height - 1, platform.width, 1, '#2F1B14');
+            drawPixelRect(x + platform.width - 1, y, 1, platform.height, '#2F1B14');
+        }
+
+        function drawCloud(cloud) {
+            const x = Math.floor(cloud.x);
+            const y = Math.floor(cloud.y);
+            const s = cloud.size;
+            
+            // Simple cloud shape
+            drawPixelRect(x, y + 4*s, 8*s, 4*s, COLORS.CLOUD_WHITE);
+            drawPixelRect(x + 2*s, y + 2*s, 4*s, 6*s, COLORS.CLOUD_WHITE);
+            drawPixelRect(x + 4*s, y, 4*s, 8*s, COLORS.CLOUD_WHITE);
+            drawPixelRect(x + 6*s, y + 2*s, 4*s, 6*s, COLORS.CLOUD_WHITE);
+        }
+
+        function draw8BitText(text, x, y, size = 16, color = COLORS.TEXT_WHITE) {
+            ctx.fillStyle = color;
+            ctx.font = `${size}px monospace`;
+            ctx.fillText(text, Math.floor(x), Math.floor(y));
+        }
+
+        function createParticle(x, y, color) {
+            game.particles.push({
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 4,
+                vy: -Math.random() * 3 - 2,
+                life: 30,
+                color: color
+            });
+        }
+
+        function updatePlayer() {
+            const p = game.player;
+            
+            // Horizontal movement
+            if (game.keys['ArrowLeft']) {
+                p.vx = -3;
+                p.facing = -1;
+            } else if (game.keys['ArrowRight']) {
+                p.vx = 3;
+                p.facing = 1;
+            } else {
+                p.vx *= 0.8;
+            }
+            
+            // Jumping
+            if (game.keys[' '] && !p.jumping) {
+                p.vy = -12;
+                p.jumping = true;
+            }
+            
+            // Gravity
+            p.vy += 0.5;
+            
+            // Update position
+            p.x += p.vx;
+            p.y += p.vy;
+            
+            // Platform collision
+            p.jumping = true;
+            game.platforms.forEach(platform => {
+                if (p.x + p.width > platform.x && 
+                    p.x < platform.x + platform.width && 
+                    p.y + p.height > platform.y && 
+                    p.y + p.height < platform.y + platform.height + 10 && 
+                    p.vy >= 0) {
+                    p.y = platform.y - p.height;
+                    p.vy = 0;
+                    p.jumping = false;
+                    platform.visited = true;
+                }
+            });
+            
+            // Ground collision
+            if (p.y > 320) {
+                p.y = 320;
+                p.vy = 0;
+                p.jumping = false;
+            }
+            
+            // Collectible collection
+            game.collectibles.forEach(item => {
+                if (!item.collected && 
+                    p.x + p.width > item.x && 
+                    p.x < item.x + item.width && 
+                    p.y + p.height > item.y && 
+                    p.y < item.y + item.height) {
+                    item.collected = true;
+                    
+                    // Different points for different items
+                    let points = 100;
+                    let particleColor = COLORS.COIN_YELLOW;
+                    
+                    switch(item.type) {
+                        case 'coin': points = 100; particleColor = COLORS.COIN_YELLOW; break;
+                        case 'mushroom': points = 200; particleColor = COLORS.MARIO_RED; break;
+                        case 'star': points = 500; particleColor = COLORS.COIN_YELLOW; break;
+                        case 'flower': points = 300; particleColor = '#FF6347'; break;
+                    }
+                    
+                    game.score += points;
+                    game.ui.collectedSkills++;
+                    
+                    // Create particles
+                    for (let i = 0; i < 5; i++) {
+                        createParticle(item.x + 8, item.y + 8, particleColor);
+                    }
+                    
+                    updateUI();
+                }
+            });
+            
+            // Camera follow
+            game.camera.x = p.x - 200;
+            if (game.camera.x < 0) game.camera.x = 0;
+        }
+
+        function updateParticles() {
+            game.particles.forEach((particle, index) => {
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.vy += 0.2;
+                particle.life--;
+                
+                if (particle.life <= 0) {
+                    game.particles.splice(index, 1);
+                }
+            });
+        }
+
+        function draw() {
+            // Clear screen
+            drawPixelRect(0, 0, canvas.width, canvas.height, COLORS.SKY_BLUE);
+            
+            // Save context for camera
+            ctx.save();
+            ctx.translate(-game.camera.x, 0);
+            
+            // Draw clouds
+            game.clouds.forEach(drawCloud);
+            
+            // Draw platforms
+            game.platforms.forEach(drawPlatform);
+            
+            // Draw collectibles
+            game.collectibles.forEach(drawCollectible);
+            
+            // Draw Mario
+            drawMario();
+            
+            // Draw particles
+            game.particles.forEach(particle => {
+                ctx.globalAlpha = particle.life / 30;
+                drawPixelRect(particle.x, particle.y, 2, 2, particle.color);
+                ctx.globalAlpha = 1;
+            });
+            
+            // Draw platform text
+            game.platforms.forEach((platform, index) => {
+                // Always show company name and title
+                draw8BitText(`${platform.company}`, platform.x, platform.y - 60, 14, COLORS.TEXT_WHITE);
+                draw8BitText(`${platform.title}`, platform.x, platform.y - 45, 12, '#CCCCCC');
+                draw8BitText(`${platform.years}`, platform.x, platform.y - 30, 10, '#AAAAAA');
+                
+                // Show collected skills with proper line wrapping
+                if (platform.visited) {
+                    const collectedSkills = game.collectibles.filter(item => 
+                        item.platformIndex === index && item.collected
+                    ).map(item => item.skill);
+                    
+                    if (collectedSkills.length > 0) {
+                        // Wrap skills text to fit within platform width
+                        const maxWidth = platform.width - 10; // Leave some margin
+                        const skillsText = `Skills: ${collectedSkills.join(', ')}`;
+                        
+                        // Simple word wrapping
+                        const words = skillsText.split(' ');
+                        let lines = [];
+                        let currentLine = '';
+                        
+                        words.forEach(word => {
+                            const testLine = currentLine ? `${currentLine} ${word}` : word;
+                            const testWidth = ctx.measureText(testLine).width * 0.7; // Approximate scaling
+                            
+                            if (testWidth <= maxWidth) {
+                                currentLine = testLine;
+                            } else {
+                                if (currentLine) {
+                                    lines.push(currentLine);
+                                    currentLine = word;
+                                } else {
+                                    lines.push(word);
+                                }
+                            }
+                        });
+                        
+                        if (currentLine) {
+                            lines.push(currentLine);
+                        }
+                        
+                        // Draw each line
+                        lines.forEach((line, lineIndex) => {
+                            draw8BitText(line, platform.x, platform.y - 16 + (lineIndex * 12), 9, '#90EE90');
+                        });
+                    }
+                }
+            });
+            
+            ctx.restore();
+            
+            // Draw UI
+            draw8BitText(`JEN YEE'S CAREER JOURNEY`, 10, 380, 14, COLORS.COIN_YELLOW);
+        }
+
+        function gameLoop() {
+            updatePlayer();
+            updateParticles();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event listeners
+        window.addEventListener('keydown', (e) => {
+            game.keys[e.key] = true;
+            e.preventDefault();
+        });
+
+        window.addEventListener('keyup', (e) => {
+            game.keys[e.key] = false;
+            e.preventDefault();
+        });
+
+        // UI Update functions
+        function updateUI() {
+            document.getElementById('game-score').textContent = game.score;
+            document.getElementById('skills-collected').textContent = game.ui.collectedSkills;
+            document.getElementById('total-skills').textContent = game.ui.totalSkills;
+            
+            // Update progress bar
+            const progress = (game.ui.collectedSkills / game.ui.totalSkills) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+            
+            // Update skills grid
+            updateSkillsGrid();
+        }
+        
+        function updateSkillsGrid() {
+            const skillsGrid = document.getElementById('skills-grid');
+            skillsGrid.innerHTML = '';
+            
+            const collectedSkillNames = game.collectibles
+                .filter(item => item.collected)
+                .map(item => item.skill);
+            
+            // Count how many of each skill has been collected
+            const collectedSkillCounts = new Map();
+            collectedSkillNames.forEach(skill => {
+                collectedSkillCounts.set(skill, (collectedSkillCounts.get(skill) || 0) + 1);
+            });
+            
+            game.ui.uniqueSkills.forEach(skill => {
+                const skillBadge = document.createElement('div');
+                skillBadge.className = 'skill-badge';
+                skillBadge.textContent = skill;
+                
+                if (collectedSkillNames.includes(skill)) {
+                    skillBadge.classList.add('collected');
+                    
+                    // Add duplicate class if skill appears more than once
+                    const totalOccurrences = game.ui.skillCounts.get(skill) || 1;
+                    if (totalOccurrences > 1) {
+                        skillBadge.classList.add('duplicate');
+                        // Show count on badge if it's a duplicate
+                        skillBadge.textContent = `${skill} (${totalOccurrences})`;
+                    }
+                }
+                
+                skillsGrid.appendChild(skillBadge);
+            });
+        }
+        
+        // Initialize UI
+        updateUI();
+        
+        // Start game
+        gameLoop();
+        
+        // Ensure background music plays on load
+        window.addEventListener('DOMContentLoaded', function() {
+            const music = document.getElementById('background-music');
+            if (music) {
+                music.play().catch(() => {});
+            }
+        });
+        
+        // Ensure background music plays on first user interaction
+        function tryPlayMusic() {
+            const music = document.getElementById('background-music');
+            if (music && music.paused) {
+                music.play().catch(() => {});
+            }
+        }
+        window.addEventListener('keydown', tryPlayMusic, { once: true });
+        window.addEventListener('mousedown', tryPlayMusic, { once: true });
+        window.addEventListener('touchstart', tryPlayMusic, { once: true });
+    </script>
+</body>
+</html>
