@@ -6,7 +6,16 @@ Olympian and Professional Athlete turned Software Engineer turned Salesperson wh
 
 WORK EXPERIENCE
 
-Sales Representative | Wodka Vines (Jan 2025 - Present)
+Business Development Representative | SkillGrader (Oct 2025 - Sept 2026)
+• Ran full-cycle outbound for SkillGrader's higher education vertical — no inbound, no warm leads, just research, hustle, and systems
+• Booked 20+ discovery calls per month through pure cold outreach targeting program directors, deans, and workforce development leaders at technical and community colleges across the U.S.
+• Built and managed automated outreach workflows using Google Apps Script and AI tooling (Claude, Gemini), cutting manual sequencing time and increasing personalization at scale
+• Owned and maintained HubSpot and Apollo instances — contact enrichment, pipeline hygiene, workflow automation, and reporting
+• Partnered with RevOps to design content engines and GTM systems that kept the team running efficiently
+• Developed deep domain expertise across allied health, EMS, nursing, and CTE programs, leading credible, consultative conversations at every level of an institution
+• Tools: HubSpot, Apollo, ZoomInfo, Google Apps Script, Sybill, AI-assisted workflow automation
+
+Sales Representative | Wodka Vines (Jan 2025 - Oct 2025)
 • Commission-based sales agent covering the entire Lower Mainland, selling wine and spirits to private liquor stores and restaurants
 • Built and managed my own sales pipeline by cold calling, door knocking, and building relationships
 • Maintained relationships and followed up with key account holders
